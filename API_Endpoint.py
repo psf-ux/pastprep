@@ -27,9 +27,6 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 collection = client["rag_db"]["pastprepvectors"]
 embedding_model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
 
-# Sentence Transformer Model
-
-
 # Define a function to generate embeddings
 def get_embedding(data):
     """Generates vector embeddings for the given data."""
@@ -92,6 +89,8 @@ def query_endpoint():
     question = data.get("question")
     course = data.get("course")
     category = data.get("category")
+
+    print(course, category, question)
 
     # Validate inputs
     if not question or not course or not category:
