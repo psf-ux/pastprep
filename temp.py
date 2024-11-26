@@ -6,7 +6,7 @@ url = 'http://127.0.0.1:5000/query'  # Replace with your actual API endpoint
 # Define the payload (data to be sent in the POST request)
 payload = {
     "question": "Outline the growth of Islam in Makka from the first revelation until the migration to Madina",
-    "category": "O levels",
+    "category": "olevels",
     "course": "Islamiyat"
 }
 

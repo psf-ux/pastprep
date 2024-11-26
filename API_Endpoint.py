@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify
+import google.generativeai as genai
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from sentence_transformers import SentenceTransformer
 from langchain.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+
 import requests
-import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 
@@ -16,6 +17,7 @@ load_dotenv()
 # Access the variables
 GEMINI_API= os.getenv("GEMINI_API")
 MONGO_URI = os.getenv("MONGO_URI")
+GROQ_API = os.getenv("GROQ_API")
 # Flask app setup
 app = Flask(__name__)
 
@@ -23,20 +25,22 @@ app = Flask(__name__)
 uri = MONGO_URI 
 client = MongoClient(uri, server_api=ServerApi('1'))
 collection = client["rag_db"]["pastprepvectors"]
+embedding_model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
 
 # Sentence Transformer Model
-model = SentenceTransformer("nomic-ai/nomic-embed-text-v1", trust_remote_code=True)
+
 
 # Define a function to generate embeddings
 def get_embedding(data):
     """Generates vector embeddings for the given data."""
-    embedding = model.encode(data)
+    embedding = embedding_model.encode(data)
     return embedding.tolist()
 
 # Define a function to perform the vector query
 def get_query_results(query, course, category):
     """Gets results from a vector search query."""
     query_embedding = get_embedding(query)
+    # print("Embeddings: ",query_embedding)
     pipeline = [
         {
             "$vectorSearch": {
@@ -44,7 +48,7 @@ def get_query_results(query, course, category):
                 "queryVector": query_embedding,
                 "path": "embedding",
                 "exact": True,
-                "limit": 5
+                "limit": 10
             }
         },
         {
@@ -52,7 +56,7 @@ def get_query_results(query, course, category):
                 "_id": 1,
                 "text": 1,
                 "year": 1,
-                "course": 1,
+                "Course": 1,
                 "Paper": 1,
                 "Category": 1
             }
@@ -63,8 +67,8 @@ def get_query_results(query, course, category):
 
     array_of_results = []
     for doc in results:
-        if "course" in doc and "Category" in doc:
-            if doc["course"] == course and doc["Category"] == category:
+        if "Course" in doc and "Category" in doc:
+            if doc["Course"] == course and doc["Category"] == category:
                 array_of_results.append(doc)
 
     return array_of_results
@@ -74,11 +78,11 @@ genai.configure(api_key=GEMINI_API)
 
 def get_gemini_response(question, context):
     """Sends a request to the Gemini API to get the answer."""
-    prompt = f"Answer the following question based on the given context:\n\nQuestion: {question}\nContext: {context}"
+    prompt = f"Respond only in plaintext\n Answer the following question based on the given context:\n\nQuestion: {question}\nContext: {context}"
     
     model = genai.GenerativeModel('gemini-1.5-flash')
     response = model.generate_content(prompt)
-    print(response.text)
+    return response.text
 
 # Flask endpoint
 @app.route('/query', methods=['POST'])
@@ -95,11 +99,12 @@ def query_endpoint():
 
     # Get vector search results
     results = get_query_results(question, course, category)
+    # print("Results: ",results)
     context = "\n".join([result["text"] for result in results])
 
     # Get answer from Gemini API
     answer = get_gemini_response(question, context)
-
+    print("\n\n\nAnswer: \n\n",answer)
     return jsonify({"question": question, "answer": answer, "context": context})
 
 # Run the Flask app
