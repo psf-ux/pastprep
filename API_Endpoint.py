@@ -15,9 +15,9 @@ import os
 load_dotenv()
 
 # Access the variables
-GEMINI_API= os.getenv("GEMINI_API")
-MONGO_URI = os.getenv("MONGO_URI")
-GROQ_API = os.getenv("GROQ_API")
+GEMINI_API= "AIzaSyByMXNJGawuAJadbGoLAG2XY_9vBfN9iNE"
+MONGO_URI = "mongodb+srv://k214889:t6u.CLkfQhGhFPJ@cluster0.5rnig.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
 # Flask app setup
 app = Flask(__name__)
 
