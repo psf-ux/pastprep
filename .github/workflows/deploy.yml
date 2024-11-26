@@ -40,5 +40,5 @@ jobs:
       # Build and push the Docker image to Docker Hub
       - name: Build and Push Docker Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/your_app_name:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/your_app_name:latest
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/chatbot:latest .
+          docker push ${{ secrets.DOCKER_USERNAME }}/chatbot:latest
