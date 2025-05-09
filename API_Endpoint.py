@@ -106,6 +106,7 @@ def query_endpoint():
     print("\n\n\nAnswer: \n\n",answer)
     return jsonify({"question": question, "answer": answer, "context": context})
 
+
 # Run the Flask app
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
