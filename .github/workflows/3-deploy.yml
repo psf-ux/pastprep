@@ -46,7 +46,7 @@ jobs:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: ai-service
-          environment_name: ai-service-env
+          environment_name: ai-service-env-latest
           version_label: "v${{ github.run_number }}"
           region: us-east-2
           deployment_package: deploy.zip
