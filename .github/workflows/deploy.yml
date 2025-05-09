@@ -39,6 +39,20 @@ jobs:
 
       # Build and push the Docker image to Docker Hub
       - name: Build and Push Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/chatbot:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          # Pass environment variables securely as build arguments
+          build-args: |
+            GEMINI_API=${{ secrets.GEMINI_API }}
+            MONGO_URI=${{ secrets.MONGO_URI }}
+            
+      # This step is needed to properly handle the cache
+      - name: Move cache
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/chatbot:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/chatbot:latest
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
