@@ -2,8 +2,8 @@ name: 3. Deploy to AWS Elastic Beanstalk
 
 on:
   workflow_run:
-    # workflows: ["2. Build and Push Docker Image"]
-    workflows: ["1. Auto Format with Black"]
+    workflows: ["2. Build and Push Docker Image"]
+    # workflows: ["1. Auto Format with Black"]
     types:
       - completed
   workflow_dispatch:  # Allow manual triggering
