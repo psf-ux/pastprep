@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '**/*.py'
+    # Removed the path filter to ensure it always runs on push to main
   workflow_dispatch:  # Allows manual triggering
 
 jobs:

@@ -1,45 +1,62 @@
-name: 1. Auto Format with Black
+name: 2. Build and Push Docker Image
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["1. Auto Format with Black"]
+    types:
+      - completed
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
-  black-autofix:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    # Only run if the previous workflow succeeded or was skipped (no changes needed)
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Checkout code
+      # Checkout the code from the repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # This ensures we get the latest code with any formatting changes
+          ref: ${{ github.ref }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # Set up Docker Buildx (optional but recommended for multi-platform builds)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Cache Docker layers to speed up subsequent builds
+      - name: Cache Docker layers
+        uses: actions/cache@v3
         with:
-          python-version: '3.11'
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
-      - name: Install Black
-        run: pip install black
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Run Black formatter
-        run: black .
-
-      - name: Commit and push if changes
-        id: auto-commit-action
+      # Build and push the Docker image to Docker Hub
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/chatbot:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          # Pass environment variables securely as build arguments
+          build-args: |
+            GEMINI_API=${{ secrets.GEMINI_API }}
+            MONGO_URI=${{ secrets.MONGO_URI }}
+            
+      # This step is needed to properly handle the cache
+      - name: Move cache
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          if [[ `git status --porcelain` ]]; then
-            git add .
-            git commit -m "style: auto-format with Black"
-            git push
-            echo "changes_made=true" >> $GITHUB_OUTPUT
-          else
-            echo "changes_made=false" >> $GITHUB_OUTPUT
-            echo "No changes to commit"
-          fi
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
