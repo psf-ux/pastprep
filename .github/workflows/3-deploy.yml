@@ -2,8 +2,8 @@ name: 3. Deploy to AWS Elastic Beanstalk
 
 on:
   workflow_run:
-    workflows: ["2. Build and Push Docker Image"]
-    # workflows: ["1. Auto Format with Black"]
+    # workflows: ["2. Build and Push Docker Image"]
+    workflows: ["1. Auto Format with Black"]
     types:
       - completed
   workflow_dispatch:  # Allow manual triggering
@@ -47,7 +47,7 @@ jobs:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: ai-service
-          environment_name: ai-service-env-recent
+          environment_name: ai-service-env-4594
           version_label: "v${{ github.run_number }}"
           region: us-east-2
           deployment_package: deploy.zip
