@@ -21,7 +21,8 @@ GEMINI_API = os.environ.get("GEMINI_API")
 MONGO_URI = os.environ.get("MONGO_URI")
 
 # Flask app setup
-app = Flask(__name__)
+application = Flask(__name__)
+app = application  # This is key for AWS Elastic Beanstalk compatibility
 
 # MongoDB setup
 uri = MONGO_URI
@@ -212,6 +213,13 @@ def ask_endpoint():
         return jsonify({"error": str(e)}), 500
 
 
-# Run the Flask app
+# Add a root route for health checks
+@app.route("/", methods=["GET"])
+def root():
+    return jsonify({"status": "API is running"}), 200
+
+
+# This is for local development only
 if __name__ == "__main__":
-    app.run(debug=True)
+    # In development, you can use debug mode
+    app.run(host="0.0.0.0", port=5000)
