@@ -2,7 +2,7 @@ name: 2. Build and Push Docker Image
 
 on:
   workflow_run:
-    workflows: ["1. Auto Format with Black"]
+    workflows: ["16. Auto Format with Black"]
     types:
       - completed
   workflow_dispatch:  # Allow manual triggering
